@@ -11,18 +11,32 @@ import UserNotifications
 
 private let log = Logger(subsystem: "com.local.MicGuard", category: "dji")
 
-struct Transmitter: Equatable, Identifiable {
+struct Transmitter: Equatable, Identifiable, CustomStringConvertible {
     /// 1 to 4, the slot the transmitter is paired to.
     let number: Int
     /// The receiver's 7-step gauge: 1 is full, 7 is just before the transmitter shuts off.
+    /// Each step lasts about 1.5 to 2 hours of DJI's rated 11.5.
     let gauge: Int
     let isCharging: Bool
 
-    /// Moves in 17% steps. Step 7 reads 5%, not 0%, because the transmitter is still on.
-    var percent: Int { max(5, Int((Double(7 - gauge) * 100 / 6).rounded())) }
+    /// 6 at step 1, 0 at step 7.
+    var bars: Int { 7 - gauge }
+    /// The middle of each step's band, rounded to 10%. A step covers about 14%, so an exact figure would look stuck.
+    var level: String {
+        switch gauge {
+        case 1: "Full"
+        case 2: "About 80%"
+        case 3: "About 60%"
+        case 4: "About 50%"
+        case 5: "About 40%"
+        case 6: "About 20%"
+        default: "Almost empty"
+        }
+    }
     /// DJI Mimo shows its low-battery warning from step 6.
     var isLow: Bool { gauge >= 6 }
     var id: Int { number }
+    var description: String { "TX\(number) step \(gauge)/7\(isCharging ? " charging" : "")" }
 }
 
 @MainActor @Observable
@@ -32,8 +46,10 @@ final class DJIMicStatus {
 
     private var poll: Task<Void, Never>?
     private var notifications: IONotificationPortRef?
-    /// The lowest gauge step already announced per transmitter, cleared once it charges.
+    /// The lowest gauge step already announced per transmitter, cleared once it charges or climbs back to step 4.
     private var warnedGauge: [Int: Int] = [:]
+    /// The last step logged per transmitter. Kept across failed reads, so a recovery doesn't log the same step twice.
+    private var loggedSteps: [Int: Transmitter] = [:]
 
     init() {
         watchReceiver()
@@ -53,6 +69,7 @@ final class DJIMicStatus {
                 let reading = await DJIReceiver.read()
                 guard !Task.isCancelled else { return }
                 if let reading {
+                    logChanges(reading)
                     transmitters = reading
                     failedReads = 0
                     warnIfLow(reading)
@@ -68,19 +85,29 @@ final class DJIMicStatus {
         }
     }
 
+    /// Notice level, so the step history stays in the log for days: "battery TX1 step 2/7 -> TX1 step 3/7".
+    private func logChanges(_ reading: [Transmitter]) {
+        for transmitter in reading where loggedSteps[transmitter.number] != transmitter {
+            let before = loggedSteps[transmitter.number]?.description ?? "unknown"
+            log.notice("battery \(before, privacy: .public) -> \(transmitter.description, privacy: .public)")
+            loggedSteps[transmitter.number] = transmitter
+        }
+    }
+
     /// One alert at step 6, where DJI Mimo warns, and one more at step 7, just before shutoff.
     private func warnIfLow(_ transmitters: [Transmitter]) {
         for transmitter in transmitters {
-            guard transmitter.isLow, !transmitter.isCharging else {
+            // Re-arm only well above low, so a gauge flickering between 5 and 6 doesn't alert twice.
+            if transmitter.isCharging || transmitter.gauge <= 4 {
                 warnedGauge[transmitter.number] = nil
-                continue
             }
+            guard transmitter.isLow, !transmitter.isCharging else { continue }
             guard transmitter.gauge > warnedGauge[transmitter.number] ?? 0 else { continue }
             warnedGauge[transmitter.number] = transmitter.gauge
             let name = transmitters.count > 1 ? "DJI transmitter \(transmitter.number)" : "DJI transmitter"
             let body = transmitter.gauge == 7
                 ? "It will shut off soon. Charge it or switch mics."
-                : "About \(transmitter.percent)% left."
+                : "\(transmitter.level) left."
             Self.notify(title: "\(name) battery low", body: body)
         }
     }
@@ -306,29 +333,36 @@ struct FrameReader {
     }
 }
 
-/// A battery drawn to scale: the fill follows the percentage instead of SF Symbols' quarter steps.
+/// A battery with the receiver's six bars, so the icon shows exactly what the receiver reports.
 /// Redrawn on every appearance change, so the outline follows light and dark mode.
 enum BatteryIcon {
     static func image(for transmitter: Transmitter) -> NSImage {
-        let image = NSImage(size: NSSize(width: 25, height: 12), flipped: false) { _ in
-            let body = NSRect(x: 0.5, y: 0.5, width: 21, height: 11)
+        let image = NSImage(size: NSSize(width: 24, height: 12), flipped: false) { _ in
+            // The 1-point stroke sits on half points; the bars sit on whole points so they stay sharp at 1x.
+            let body = NSRect(x: 0.5, y: 0.5, width: 20, height: 11)
             let outline = NSBezierPath(roundedRect: body, xRadius: 3, yRadius: 3)
             outline.lineWidth = 1
             NSColor.secondaryLabelColor.setStroke()
             outline.stroke()
 
-            let cap = NSRect(x: 22.5, y: 4, width: 2, height: 4)
+            let cap = NSRect(x: 21.5, y: 4, width: 2, height: 4)
             NSColor.secondaryLabelColor.setFill()
             NSBezierPath(roundedRect: cap, xRadius: 1, yRadius: 1).fill()
 
-            let inner = body.insetBy(dx: 2, dy: 2)
-            let fill = NSRect(x: inner.minX, y: inner.minY,
-                              width: max(1.5, inner.width * CGFloat(transmitter.percent) / 100), height: inner.height)
+            // Six 2-point bars with 1-point gaps, 17 points wide, 1 point clear of the stroke on each side.
+            let inner = NSRect(x: 2, y: 3, width: 17, height: 6)
             fillColor(for: transmitter).setFill()
-            NSBezierPath(roundedRect: fill, xRadius: 1.5, yRadius: 1.5).fill()
+            guard transmitter.bars > 0 else {
+                // Step 7: still on, so draw a sliver instead of an empty battery.
+                NSRect(x: inner.minX, y: inner.minY, width: 1, height: inner.height).fill()
+                return true
+            }
+            for bar in 0..<transmitter.bars {
+                NSRect(x: inner.minX + CGFloat(bar) * 3, y: inner.minY, width: 2, height: inner.height).fill()
+            }
             return true
         }
-        image.accessibilityDescription = "Transmitter battery \(transmitter.percent)%"
+        image.accessibilityDescription = "Transmitter battery \(transmitter.bars) of 6 bars"
         return image
     }
 

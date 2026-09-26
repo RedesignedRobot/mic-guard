@@ -33,7 +33,7 @@ Virtual devices (Zoom, Teams, loopback drivers) and mics you marked **Never use*
 - The last five switches, like `22:46  AirPods Pro → DJI Wireless Mic Rx`.
 - Pause for 15 minutes, an hour, or until you resume.
 - Settings: per-mic rules, open at login, a notification on each switch, and the mic name in the menu bar.
-- With a DJI Mic Mini 2 receiver plugged in, a battery row under it shows the transmitter's charge, "charging" when docked, or "Transmitter off". The receiver reports 7 steps, so the percentage moves in about 17% jumps. Mic Guard reads it from the receiver's USB control channel about once a minute and never touches the audio stream. When a transmitter gets low, it sends one alert at about 17% and another just before it shuts off, if you allowed notifications in Settings.
+- With a DJI Mic Mini 2 receiver plugged in, a battery row under it shows the transmitter's charge, "charging" when docked, or "Transmitter off". The receiver only reports 7 steps, from full to almost empty, so the row shows six bars and a rounded level like "About 80%". Each step lasts about 1.5 to 2 hours, so the level holding still for a while is normal. Mic Guard reads it from the receiver's USB control channel about once a minute and never touches the audio stream. When a transmitter gets low, it sends one alert at the last bar and another just before it shuts off, if you allowed notifications in Settings.
 
 ## Install
 
@@ -80,6 +80,12 @@ Logs go to the unified log:
 
 ```sh
 /usr/bin/log show --last 1h --predicate 'subsystem == "com.local.MicGuard"' --info
+```
+
+Every change in the DJI battery step is logged with its time, so you can see how long each step lasted:
+
+```sh
+/usr/bin/log show --last 1d --predicate 'subsystem == "com.local.MicGuard" AND category == "dji"'
 ```
 
 ## License

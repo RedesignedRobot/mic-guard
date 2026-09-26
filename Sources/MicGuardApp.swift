@@ -108,7 +108,7 @@ struct MenuContent: View {
                 // Menus drop the icon of a Label on a text row, but keep an image inside the Text.
                 let name = transmitters.count > 1 ? "Transmitter \(transmitter.number)" : "Transmitter"
                 let charging = transmitter.isCharging ? ", charging" : ""
-                Text("     \(Image(nsImage: BatteryIcon.image(for: transmitter)))  \(name) \(transmitter.percent)%\(charging)")
+                Text("     \(Image(nsImage: BatteryIcon.image(for: transmitter)))  \(name) · \(transmitter.level)\(charging)")
             }
         }
     }
