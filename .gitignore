@@ -1,0 +1,4 @@
+build/
+video/node_modules/
+video/out/
+.DS_Store

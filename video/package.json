@@ -1,0 +1,23 @@
+{
+  "name": "mic-guard-video",
+  "private": true,
+  "description": "Promo video and README demo for Mic Guard, made with Remotion",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "still": "remotion still src/index.ts",
+    "render:promo": "remotion render src/index.ts Promo out/promo.mp4 --codec=h264 --pixel-format=yuv420p --crf=12",
+    "render:demo": "remotion render src/index.ts Demo out/demo.mp4 --codec=h264 --pixel-format=yuv420p --crf=12"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.529",
+    "@remotion/google-fonts": "4.0.529",
+    "@remotion/transitions": "4.0.529",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "remotion": "4.0.529"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "typescript": "5.9.3"
+  }
+}
