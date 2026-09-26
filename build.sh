@@ -1,7 +1,7 @@
 #!/bin/zsh
 # Builds Mic Guard for Apple Silicon and Intel, installs it to ~/Applications and opens it.
 #   ./build.sh       build and install
-#   ./build.sh zip   build only, and write build/MicGuard.zip for a release
+#   ./build.sh zip   build only, and write build/MicGuard.zip plus its checksum for a release
 # Signs ad-hoc unless SIGNING_IDENTITY names a certificate from `security find-identity -p codesigning`.
 set -euo pipefail
 cd "${0:A:h}"
@@ -23,7 +23,8 @@ codesign --force --options runtime --sign "${SIGNING_IDENTITY:--}" $APP
 
 if [[ "${1:-}" == zip ]]; then
     ditto -c -k --keepParent $APP build/MicGuard.zip
-    echo "Wrote build/MicGuard.zip"
+    (cd build && shasum -a 256 MicGuard.zip > MicGuard.zip.sha256)
+    echo "Wrote build/MicGuard.zip and its .sha256"
     exit 0
 fi
 

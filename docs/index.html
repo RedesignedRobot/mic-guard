@@ -112,6 +112,7 @@ h1 .scribble svg { position: absolute; left: -2%; right: -2%; bottom: -0.12em; w
 .lede { max-width: 640px; margin: 22px auto 0; font-size: clamp(18px, 2.3vw, 21px); line-height: 1.5; color: var(--muted); }
 .lede strong { color: var(--ink); font-weight: 600; }
 .cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; margin-top: 30px; }
+.hero-code { max-width: 740px; margin: 22px auto 0; text-align: left; }
 .meta { margin: 20px 0 0; font-size: 14.5px; color: var(--muted); }
 
 /* Stage: the fight */
@@ -360,7 +361,7 @@ ol.how li::before { content: counter(s); position: absolute; left: 0; top: -1px;
 .path { color: var(--ink); font-weight: 600; }
 
 .code { position: relative; margin-top: 18px; border-radius: 12px 10px 13px 9px; background: #F4EFE6; border: 2px solid var(--ink); color: var(--ink); }
-.code pre { margin: 0 54px 0 0; padding: 16px 12px 16px 16px; font-size: 13.5px; line-height: 1.7; overflow-x: auto; }
+.code pre { margin: 0 54px 0 0; padding: 16px 12px 16px 16px; font-size: 13.5px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
 .code pre .p { color: var(--muted); user-select: none; }
 @media (max-width: 479px) { .code pre { font-size: 12.5px; } }
 .copy {
@@ -508,7 +509,13 @@ main, .foot { position: relative; z-index: 1; }
         <a class="btn btn-go" href="https://github.com/RedesignedRobot/mic-guard/releases/latest/download/MicGuard.zip"><svg class="i"><use href="#i-download"/></svg>Download for Mac</a>
         <a class="btn btn-plain" href="https://github.com/RedesignedRobot/mic-guard">View on GitHub</a>
       </div>
-      <p class="meta">Free and open source · macOS 15 Sequoia or later · Apple Silicon and Intel</p>
+      <div class="code hero-code">
+        <pre><code><span class="p">$ </span>curl -fsSL https://redesignedrobot.github.io/mic-guard/install.sh &#124; zsh</code></pre>
+        <button class="copy" type="button" data-copy="curl -fsSL https://redesignedrobot.github.io/mic-guard/install.sh | zsh" aria-label="Copy install command">
+          <svg class="i i-copy"><use href="#i-copy"/></svg><svg class="i i-done"><use href="#i-check"/></svg>
+        </button>
+      </div>
+      <p class="meta">Paste it into Terminal · Free and open source · macOS 15 or later · Apple Silicon and Intel</p>
 
       <div class="stage" id="stage" role="img" aria-label="Cartoon of the Mic Guard menu and four characters. The USB mic is on air. AirPods walk in and grab the mic, and macOS switches the input to them. Mic Guard, a green shield, blows a whistle and hands the mic back to the USB mic.">
         <div class="tint" id="tint" aria-hidden="true"></div>
@@ -863,18 +870,34 @@ main, .foot { position: relative; z-index: 1; }
       </div>
       <div class="install">
         <div class="sticker panel reveal">
-          <div class="panel-head"><span class="ico bg-green"><svg class="i"><use href="#i-download"/></svg></span><h3>Download the app</h3></div>
-          <ol class="how">
-            <li><strong>Download MicGuard.zip</strong> from the <a href="https://github.com/RedesignedRobot/mic-guard/releases/latest">latest release</a> and unzip it.</li>
-            <li><strong>Move MicGuard.app</strong> to your Applications folder and open it.</li>
-            <li>The app isn't notarized, so macOS blocks the first launch. Open <span class="path">System Settings › Privacy &amp; Security</span> and click <strong>Open Anyway</strong>.</li>
-            <li>Look for the mic in your menu bar. It adds itself to your login items on first launch.</li>
-          </ol>
-          <a class="btn btn-go" href="https://github.com/RedesignedRobot/mic-guard/releases/latest/download/MicGuard.zip"><svg class="i"><use href="#i-download"/></svg>Download MicGuard.zip</a>
+          <div class="panel-head"><span class="ico bg-green"><svg class="i"><use href="#i-download"/></svg></span><h3>One line in Terminal</h3></div>
+          <p>Downloads the latest release, checks its SHA-256, installs Mic Guard to Applications and opens it. No security prompts, no Xcode.</p>
+          <div class="code">
+            <pre><code><span class="p">$ </span>curl -fsSL https://redesignedrobot.github.io/mic-guard/install.sh &#124; zsh</code></pre>
+            <button class="copy" type="button" data-copy="curl -fsSL https://redesignedrobot.github.io/mic-guard/install.sh | zsh" aria-label="Copy install command">
+              <svg class="i i-copy"><use href="#i-copy"/></svg><svg class="i i-done"><use href="#i-check"/></svg>
+            </button>
+          </div>
+          <p class="note-sm">Run the same line again to update. To remove it, including its settings:</p>
+          <div class="code">
+            <pre><code><span class="p">$ </span>curl -fsSL https://redesignedrobot.github.io/mic-guard/install.sh &#124; zsh -s -- --uninstall</code></pre>
+            <button class="copy" type="button" data-copy="curl -fsSL https://redesignedrobot.github.io/mic-guard/install.sh | zsh -s -- --uninstall" aria-label="Copy uninstall command">
+              <svg class="i i-copy"><use href="#i-copy"/></svg><svg class="i i-done"><use href="#i-check"/></svg>
+            </button>
+          </div>
+          <p class="note-sm">The <a href="install.sh">script</a> is about 90 lines. Read it before you run it.</p>
+          <p class="note-sm">Prefer a download? Get <a href="https://github.com/RedesignedRobot/mic-guard/releases/latest/download/MicGuard.zip">MicGuard.zip</a>, move the app to Applications and open it. The app isn't notarized, so the first launch needs <span class="path">System Settings › Privacy &amp; Security</span> › <strong>Open Anyway</strong>.</p>
         </div>
         <div class="sticker panel reveal">
           <div class="panel-head"><span class="ico bg-sky"><svg class="i"><use href="#i-terminal"/></svg></span><h3>Build from source</h3></div>
-          <p>Builds a universal app, installs it to <code>~/Applications</code> and opens it. Needs the Xcode Command Line Tools.</p>
+          <p>Compiles Mic Guard on your Mac from the latest source, then installs and opens it. Needs the Xcode Command Line Tools.</p>
+          <div class="code">
+            <pre><code><span class="p">$ </span>curl -fsSL https://redesignedrobot.github.io/mic-guard/install.sh &#124; zsh -s -- --source</code></pre>
+            <button class="copy" type="button" data-copy="curl -fsSL https://redesignedrobot.github.io/mic-guard/install.sh | zsh -s -- --source" aria-label="Copy build-from-source command">
+              <svg class="i i-copy"><use href="#i-copy"/></svg><svg class="i i-done"><use href="#i-check"/></svg>
+            </button>
+          </div>
+          <p class="note-sm">Or clone it and build it yourself. <code>./build.sh</code> installs to <code>~/Applications</code>.</p>
           <div class="code">
             <pre><code><span class="p">$ </span>git clone https://github.com/RedesignedRobot/mic-guard
 <span class="p">$ </span>cd mic-guard

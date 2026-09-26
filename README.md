@@ -37,15 +37,28 @@ Virtual devices (Zoom, Teams, loopback drivers) and mics you marked **Never use*
 
 ## Install
 
-Requires macOS 15 Sequoia or later, on Apple Silicon or Intel.
+Requires macOS 15 Sequoia or later, on Apple Silicon or Intel. Paste this into Terminal:
+
+```sh
+curl -fsSL https://redesignedrobot.github.io/mic-guard/install.sh | zsh
+```
+
+It downloads the latest release, checks its SHA-256, installs Mic Guard to Applications and opens it. There's no security prompt and you don't need Xcode. Run it again to update. The [script](docs/install.sh) is about 90 lines if you want to read it first.
+
+Mic Guard adds itself to your login items on first launch. Turn that off in Settings if you'd rather not.
+
+| To | Run |
+|---|---|
+| Build from source instead (needs `xcode-select --install`) | `curl -fsSL https://redesignedrobot.github.io/mic-guard/install.sh \| zsh -s -- --source` |
+| Uninstall, including settings | `curl -fsSL https://redesignedrobot.github.io/mic-guard/install.sh \| zsh -s -- --uninstall` |
+
+### Manual download
 
 1. Download `MicGuard.zip` from the [latest release](https://github.com/RedesignedRobot/mic-guard/releases/latest) and unzip it.
 2. Move `MicGuard.app` to Applications and open it.
-3. The app isn't notarized, so macOS blocks the first launch. Open **System Settings → Privacy & Security** and click **Open Anyway**.
+3. The app isn't notarized, so macOS blocks the first launch from a browser download. Open **System Settings → Privacy & Security** and click **Open Anyway**.
 
-It adds itself to your login items on first launch. Turn that off in Settings if you'd rather not.
-
-### Build from source
+### Build from a clone
 
 With the Xcode Command Line Tools installed:
 
@@ -55,7 +68,7 @@ cd mic-guard
 ./build.sh
 ```
 
-That builds a universal app, installs it to `~/Applications` and opens it. Set `SIGNING_IDENTITY` to sign with your own certificate.
+That builds a universal app, installs it to `~/Applications` and opens it. Set `SIGNING_IDENTITY` to sign with your own certificate. `./build.sh zip` writes the release zip and its checksum instead.
 
 ## How it works
 
